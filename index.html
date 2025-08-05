@@ -224,7 +224,15 @@
         throw new Error(`Ошибка HTTP: ${response.status}`);
       }
       
-      const data = await response.json();
+      const text = await response.text();
+  try {
+    const data = JSON.parse(text);
+    console.log("✅ Успех:", data);
+    refresh(); // обновление UI
+  } catch (err) {
+    console.error("❌ Ошибка парсинга JSON:", err.message);
+    console.log("Ответ от сервера:", text);
+  }
       
       if (!data || !data.success) {
         throw new Error(data.error || "Неверный формат данных");
