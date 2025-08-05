@@ -5,58 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Текила VS Триатлон</title>
   <style>
+    :root {
+      --primary: #d63384;
+      --secondary: #fff0f6;
+      --progress-bg: #ffe0eb;
+    }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #fff0f6;
+      background: var(--secondary);
       color: #333;
       padding: 20px;
       max-width: 600px;
       margin: 0 auto;
+      line-height: 1.6;
     }
     h1 {
       text-align: center;
-      color: #d63384;
+      color: var(--primary);
+      margin-bottom: 30px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .progress-container {
-      margin: 25px 0;
+      margin-bottom: 15px;
+    }
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: 600;
     }
     .progress-bar {
-      background: #ffe0eb;
-      border-radius: 10px;
-      height: 30px;
-      margin-bottom: 15px;
+      height: 26px;
+      background: var(--progress-bg);
+      border-radius: 13px;
       overflow: hidden;
     }
-    .progress {
-      background: #d63384;
+    .progress-fill {
       height: 100%;
-      width: 0%;
-      transition: width 0.5s;
+      background: var(--primary);
+      border-radius: 13px;
+      transition: width 0.5s ease;
       display: flex;
       align-items: center;
       justify-content: flex-end;
       padding-right: 10px;
       color: white;
       font-weight: bold;
+      font-size: 14px;
     }
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin: 25px 0;
-    }
-    select, input, button {
+    select, input {
+      width: 100%;
       padding: 12px;
-      border: 2px solid #d63384;
+      border: 2px solid #ddd;
       border-radius: 8px;
       font-size: 16px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
     }
     button {
-      background: #d63384;
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
       color: white;
       border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: background 0.2s;
     }
     button:hover {
       background: #c22574;
@@ -65,74 +91,113 @@
       background: #ccc;
       cursor: not-allowed;
     }
-    .details {
-      background: white;
-      padding: 15px;
+    #loader {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      color: var(--primary);
+    }
+    #error {
+      display: none;
+      background: #ffebee;
+      color: #d32f2f;
+      padding: 12px;
       border-radius: 8px;
-      border-left: 4px solid #d63384;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .success {
+      background: #e8f5e9 !important;
+      color: #2e7d32 !important;
+    }
+    .last-update {
+      text-align: center;
+      font-size: 13px;
+      color: #666;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body>
   <h1>Текила VS Триатлон</h1>
   
-  <div class="progress-container">
-    <h3>Tequila — Цель: €150</h3>
-    <div class="progress-bar">
-      <div id="tequila-progress" class="progress">0% (€0)</div>
+  <div id="error"></div>
+  <div id="loader">Загрузка данных...</div>
+  
+  <div class="card">
+    <div class="progress-container">
+      <div class="progress-header">
+        <span>Tequila</span>
+        <span>Цель: €150</span>
+      </div>
+      <div class="progress-bar">
+        <div id="tequila-progress" class="progress-fill">0% (€0)</div>
+      </div>
     </div>
     
-    <h3>Triathlon — Цель: €800</h3>
-    <div class="progress-bar">
-      <div id="triathlon-progress" class="progress">0% (€0)</div>
+    <div class="progress-container">
+      <div class="progress-header">
+        <span>Triathlon</span>
+        <span>Цель: €800</span>
+      </div>
+      <div class="progress-bar">
+        <div id="triathlon-progress" class="progress-fill">0% (€0)</div>
+      </div>
     </div>
   </div>
 
-  <div class="input-group">
+  <div class="card">
     <select id="option">
       <option value="Tequila">Tequila</option>
       <option value="Triathlon">Triathlon</option>
     </select>
-    <input type="number" id="amount" placeholder="Сумма в €" min="0.01" step="0.01">
-    <button id="submit-btn" onclick="submitDonation()">Я перевёл</button>
+    
+    <input type="number" id="amount" min="0.01" step="0.01" placeholder="Сумма в €">
+    
+    <button id="submit-btn" onclick="submitDonation()">Я перевёл!</button>
   </div>
 
-  <div class="details">
+  <div class="card">
+    <h3>Реквизиты для перевода:</h3>
     <p>📲 <strong>Revolut:</strong> @triathlete</p>
     <p>🏦 <strong>Альфа-Банк:</strong> +79104361677</p>
-    <p>После перевода укажите сумму выше 👆</p>
   </div>
 
+  <div class="last-update" id="last-update"></div>
+
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgzPE6gJ8y4cflod-rIsXuDL7MO7VUjhNRNu1UquziSktX_PLbFeLP5XQqLLGaldvY4w/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdEWXgQhCAQcMWhU4oSEGbMhi6Wk5dWvVR5ZQqDh7JEj1wQr9W0TMrNJFFTLT9aJ8JuQ/exec";
     const GOALS = { Tequila: 150, Triathlon: 800 };
 
-    // Загрузка данных при старте
-    document.addEventListener('DOMContentLoaded', fetchProgress);
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      setInterval(loadData, 30000); // Автообновление каждые 30 сек
+    });
 
-    async function fetchProgress() {
+    async function loadData() {
+      showLoader(true);
+      hideError();
+      
       try {
-        const response = await fetch(SCRIPT_URL);
+        const url = `${SCRIPT_URL}?t=${Date.now()}`;
+        const response = await fetch(url);
+        
         if (!response.ok) throw new Error('Ошибка сети');
+        
         const data = await response.json();
+        
+        if (!data.success) throw new Error(data.error || 'Ошибка сервера');
+        
         updateUI(data);
+        document.getElementById('last-update').textContent = 
+          `Обновлено: ${new Date().toLocaleTimeString()}`;
       } catch (error) {
+        showError(error.message);
         console.error("Ошибка:", error);
-        document.getElementById('tequila-progress').textContent = "Ошибка загрузки";
-        document.getElementById('triathlon-progress').textContent = "Ошибка загрузки";
+      } finally {
+        showLoader(false);
       }
-    }
-
-    function updateUI(data) {
-      updateProgress('tequila', data.Tequila || 0);
-      updateProgress('triathlon', data.Triathlon || 0);
-    }
-
-    function updateProgress(type, value) {
-      const percent = Math.min((value / GOALS[type]) * 100, 100);
-      const elem = document.getElementById(`${type}-progress`);
-      elem.style.width = `${percent}%`;
-      elem.textContent = `${Math.round(percent)}% (€${value.toFixed(2)})`;
     }
 
     async function submitDonation() {
@@ -141,33 +206,64 @@
       const button = document.getElementById('submit-btn');
 
       if (!amount || amount <= 0) {
-        alert("Пожалуйста, введите корректную сумму");
+        showError('Введите корректную сумму');
         return;
       }
 
       button.disabled = true;
-      button.textContent = "Отправка...";
+      showLoader(true);
 
       try {
         const url = `${SCRIPT_URL}?option=${encodeURIComponent(option)}&amount=${amount}`;
         const response = await fetch(url);
         
-        if (!response.ok) throw new Error('Ошибка сервера');
+        if (!response.ok) throw new Error('Ошибка сети');
         
-        alert("Спасибо! Ваш перевод учтён ✅");
+        const result = await response.json();
+        
+        if (!result.success) throw new Error(result.error || 'Ошибка сохранения');
+        
+        showError('Спасибо! Данные сохранены ✅', 'success');
         document.getElementById('amount').value = '';
-        await fetchProgress();
+        await loadData();
       } catch (error) {
-        console.error("Ошибка:", error);
-        alert("Ошибка отправки: " + error.message);
+        showError(error.message);
       } finally {
         button.disabled = false;
-        button.textContent = "Я перевёл";
+        showLoader(false);
       }
     }
 
-    // Автообновление каждые 30 секунд
-    setInterval(fetchProgress, 30000);
+    function updateUI(data) {
+      updateProgress('tequila', data.Tequila);
+      updateProgress('triathlon', data.Triathlon);
+    }
+
+    function updateProgress(type, value) {
+      const percent = Math.min((value / GOALS[type]) * 100, 100);
+      const element = document.getElementById(`${type}-progress`);
+      element.style.width = `${percent}%`;
+      element.textContent = `${Math.round(percent)}% (€${value.toFixed(2)})`;
+    }
+
+    function showLoader(show) {
+      document.getElementById('loader').style.display = show ? 'block' : 'none';
+    }
+
+    function showError(message, type = 'error') {
+      const element = document.getElementById('error');
+      element.textContent = message;
+      element.className = type;
+      element.style.display = 'block';
+      
+      if (type === 'success') {
+        setTimeout(() => element.style.display = 'none', 3000);
+      }
+    }
+
+    function hideError() {
+      document.getElementById('error').style.display = 'none';
+    }
   </script>
 </body>
 </html>
