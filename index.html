@@ -149,33 +149,30 @@
     }
 
     async function submitDonation() {
-      const option = document.getElementById("option").value;
-      const amount = parseFloat(document.getElementById("amount").value);
+  const option = document.getElementById("option").value;
+  const amount = parseFloat(document.getElementById("amount").value);
 
-      if (!amount || amount <= 0) {
-        alert("Введите корректную сумму!");
-        return;
-      }
+  if (!amount || amount <= 0) {
+    alert("Введите корректную сумму!");
+    return;
+  }
 
-      try {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ option, amount })
-        });
+  try {
+    const res = await fetch(endpoint + `?option=${encodeURIComponent(option)}&amount=${amount}`, {
+      method: "POST",
+      mode: "no-cors" // Попробуйте этот режим
+    });
 
-        const result = await res.json();
-        if (result.result === "success") {
-          alert("Спасибо! Данные отправлены ✅");
-          fetchProgress();
-        } else {
-          throw new Error(result.message);
-        }
-      } catch (e) {
-        alert("Ошибка отправки: " + e.message);
-      }
+    if (res.ok) {
+      alert("Спасибо! Данные отправлены ✅");
+      fetchProgress();
+    } else {
+      throw new Error("Ошибка сервера");
     }
+  } catch (e) {
+    alert("Ошибка отправки: " + e.message);
+  }
+}
 
     fetchProgress();
   </script>
