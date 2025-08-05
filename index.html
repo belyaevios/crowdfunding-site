@@ -257,49 +257,37 @@
     }
 
     async function handleSubmit() {
-      if (isSubmitting) return;
-      
-      const option = document.getElementById('option').value;
-      const amountInput = document.getElementById('amount');
-      const amount = parseFloat(amountInput.value);
-      
-      if (!validateInput(amount)) return;
+  if (!selectedOption || !amount) {
+    showError("Выберите категорию и введите количество.");
+    return;
+  }
 
-      isSubmitting = true;
-      setSubmitState(true);
+  try {
+    setSubmitState(true);
+    showError(""); // очистить ошибку
 
-      try {
-        const url = new URL(SCRIPT_URL);
-        url.searchParams.append('mode', 'set');
-        url.searchParams.append('option', option);
-        url.searchParams.append('amount', amount.toFixed(2));
-        url.searchParams.append('t', Date.now());
+    const url = `${API_URL}?option=${selectedOption}&amount=${amount}`;
 
-        console.log("Отправка данных:", url.toString());
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log("Результат:", result);
-        
-        if (!result || !result.success) {
-          throw new Error(result?.error || "Ошибка сервера");
-        }
-        
-        showError("Спасибо! Данные сохранены ✅", "success");
-        amountInput.value = "";
-        await loadData();
-      } catch (error) {
-        console.error("Ошибка отправки:", error);
-        showError(error.message);
-      } finally {
-        isSubmitting = false;
-        setSubmitState(false);
-      }
-    }
+    const response = await fetch(url);
+
+    if (!response.ok) throw new Error("Ошибка при отправке данных");
+
+    // Не ждём JSON — сразу сообщаем об успехе
+    showError("Спасибо! Перевод отправлен ✅", "success");
+
+    // Асинхронно обновляем данные, не блокируя интерфейс
+    loadData(); // без await
+
+    // Очистить поля
+    setAmount("");
+    setSelectedOption("");
+  } catch (error) {
+    console.error(error);
+    showError("Ошибка при отправке данных. Попробуйте ещё раз.");
+  } finally {
+    setSubmitState(false);
+  }
+}
 
     function validateInput(amount) {
       if (isNaN(amount) || amount <= 0) {
