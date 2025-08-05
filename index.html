@@ -82,7 +82,8 @@
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: all 0.3s ease;
+      position: relative;
     }
     button:hover {
       background: #c22574;
@@ -90,6 +91,28 @@
     button:disabled {
       background: #ccc;
       cursor: not-allowed;
+      opacity: 0.7;
+    }
+    button::after {
+      content: "";
+      display: none;
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      margin-top: -8px;
+      border: 2px solid transparent;
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    button:disabled::after {
+      display: block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     #loader {
       display: none;
@@ -154,7 +177,7 @@
     
     <input type="number" id="amount" min="0.01" step="0.01" placeholder="Сумма в €">
     
-    <button id="submit-btn" onclick="submitDonation()">Я перевёл!</button>
+    <button id="submit-btn">Я перевёл!</button>
   </div>
 
   <div class="card">
@@ -168,12 +191,25 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdEWXgQhCAQcMWhU4oSEGbMhi6Wk5dWvVR5ZQqDh7JEj1wQr9W0TMrNJFFTLT9aJ8JuQ/exec";
     const GOALS = { Tequila: 150, Triathlon: 800 };
+    let isSubmitting = false;
 
     // Инициализация
     document.addEventListener('DOMContentLoaded', () => {
+      console.log("Документ загружен");
+      initButton();
       loadData();
-      setInterval(loadData, 30000); // Автообновление каждые 30 сек
+      setInterval(loadData, 30000);
     });
+
+    function initButton() {
+      const btn = document.getElementById('submit-btn');
+      if (!btn) {
+        console.error("Кнопка не найдена!");
+        return;
+      }
+      btn.addEventListener('click', submitDonation);
+      console.log("Кнопка инициализирована");
+    }
 
     async function loadData() {
       showLoader(true);
@@ -181,54 +217,71 @@
       
       try {
         const url = `${SCRIPT_URL}?t=${Date.now()}`;
-        const response = await fetch(url);
+        console.log("Загрузка данных:", url);
         
-        if (!response.ok) throw new Error('Ошибка сети');
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
+        console.log("Получены данные:", data);
         
-        if (!data.success) throw new Error(data.error || 'Ошибка сервера');
+        if (!data || !data.success) throw new Error(data?.error || "Неверный формат данных");
         
         updateUI(data);
-        document.getElementById('last-update').textContent = 
-          `Обновлено: ${new Date().toLocaleTimeString()}`;
+        document.getElementById('last-update').textContent = `Обновлено: ${new Date().toLocaleTimeString()}`;
       } catch (error) {
+        console.error("Ошибка загрузки:", error);
         showError(error.message);
-        console.error("Ошибка:", error);
       } finally {
         showLoader(false);
       }
     }
 
     async function submitDonation() {
+      if (isSubmitting) return;
+      
       const option = document.getElementById('option').value;
-      const amount = parseFloat(document.getElementById('amount').value);
+      const amountInput = document.getElementById('amount');
+      const amount = parseFloat(amountInput.value);
       const button = document.getElementById('submit-btn');
 
-      if (!amount || amount <= 0) {
-        showError('Введите корректную сумму');
+      // Валидация
+      if (!amount || amount <= 0 || isNaN(amount)) {
+        showError("Введите корректную сумму (например: 10.50)");
+        amountInput.focus();
         return;
       }
 
+      // Блокируем кнопку
+      isSubmitting = true;
       button.disabled = true;
       showLoader(true);
+      hideError();
 
       try {
-        const url = `${SCRIPT_URL}?option=${encodeURIComponent(option)}&amount=${amount}`;
-        const response = await fetch(url);
+        const url = new URL(SCRIPT_URL);
+        url.searchParams.append('option', option);
+        url.searchParams.append('amount', amount.toFixed(2));
+        url.searchParams.append('t', Date.now());
+
+        console.log("Отправка данных:", url.toString());
         
-        if (!response.ok) throw new Error('Ошибка сети');
+        const response = await fetch(url, { redirect: 'follow' });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const result = await response.json();
+        console.log("Результат:", result);
         
-        if (!result.success) throw new Error(result.error || 'Ошибка сохранения');
+        if (!result.success) throw new Error(result.error || "Ошибка сервера");
         
-        showError('Спасибо! Данные сохранены ✅', 'success');
-        document.getElementById('amount').value = '';
+        showError("Спасибо! Данные сохранены ✅", "success");
+        amountInput.value = "";
         await loadData();
       } catch (error) {
-        showError(error.message);
+        console.error("Ошибка отправки:", error);
+        showError(error.message || "Ошибка соединения");
       } finally {
+        isSubmitting = false;
         button.disabled = false;
         showLoader(false);
       }
@@ -239,32 +292,30 @@
       updateProgress('triathlon', data.Triathlon);
     }
 
-  function updateProgress(type, value) {
-  try {
-    const numericValue = Math.max(0, Number(value)) || 0;
-    const goal = Math.max(1, Number(GOALS[type])) || 150; // Защита от деления на 0
-    
-    const percent = Math.min(Math.max(0, (numericValue / goal) * 100), 100);
-    const element = document.getElementById(`${type}-progress`);
-    
-    element.style.width = `${percent}%`;
-    element.textContent = `${Math.round(percent)}% (€${numericValue.toFixed(2)})`;
-  } catch (e) {
-    console.error('Progress calculation error:', e);
-    document.getElementById(`${type}-progress`).textContent = '0% (€0)';
-  }
-}
-  
-  element.style.width = `${percent}%`;
-  element.textContent = `${Math.round(percent)}% (€${numericValue.toFixed(2)})`;
-}
+    function updateProgress(type, value) {
+      const numericValue = Number(value) || 0;
+      const goal = GOALS[type] || 150;
+      const percent = Math.min((numericValue / goal) * 100, 100);
+      
+      const element = document.getElementById(`${type}-progress`);
+      if (!element) {
+        console.error(`Элемент прогресса не найден: ${type}-progress`);
+        return;
+      }
+      
+      element.style.width = `${percent}%`;
+      element.textContent = `${Math.round(percent)}% (€${numericValue.toFixed(2)})`;
+    }
 
     function showLoader(show) {
-      document.getElementById('loader').style.display = show ? 'block' : 'none';
+      const loader = document.getElementById('loader');
+      if (loader) loader.style.display = show ? 'block' : 'none';
     }
 
     function showError(message, type = 'error') {
       const element = document.getElementById('error');
+      if (!element) return;
+      
       element.textContent = message;
       element.className = type;
       element.style.display = 'block';
@@ -275,7 +326,8 @@
     }
 
     function hideError() {
-      document.getElementById('error').style.display = 'none';
+      const element = document.getElementById('error');
+      if (element) element.style.display = 'none';
     }
   </script>
 </body>
