@@ -221,57 +221,95 @@
     }
 
     async function handleSubmit() {
-        if (isSubmitting) return;
-        
-        const option = document.getElementById('option').value;
-        const amountInput = document.getElementById('amount');
-        const amount = parseFloat(amountInput.value);
-        const button = document.getElementById('submit-btn');
+  console.log("Начало обработки нажатия кнопки"); // Логирование
+  
+  // Проверка состояния отправки
+  if (isSubmitting) {
+    console.log("Предотвращено двойное нажатие");
+    return;
+  }
 
-        // Валидация ввода
-        if (!validateInput(amount)) return;
+  // Получаем элементы DOM
+  const optionSelect = document.getElementById('option');
+  const amountInput = document.getElementById('amount');
+  const submitButton = document.getElementById('submit-btn');
+  
+  if (!optionSelect || !amountInput || !submitButton) {
+    console.error("Не найдены необходимые элементы DOM");
+    showError("Ошибка системы. Пожалуйста, обновите страницу.");
+    return;
+  }
 
-        // Блокируем кнопку
-        isSubmitting = true;
-        button.disabled = true;
-        showLoader(true);
-        hideError();
+  // Получаем значения
+  const option = optionSelect.value;
+  const amount = parseFloat(amountInput.value);
+  
+  console.log(`Попытка отправить: ${option} - ${amount}€`); // Логирование
 
-        try {
-            // Формируем URL с параметрами
-            const url = new URL(SCRIPT_URL);
-            url.searchParams.append('option', option);
-            url.searchParams.append('amount', amount.toFixed(2));
-            url.searchParams.append('t', Date.now());
+  // Валидация
+  if (isNaN(amount) {
+    console.log("Некорректная сумма", amountInput.value);
+    showError("Введите корректную сумму (например: 10.50)");
+    amountInput.focus();
+    return;
+  }
 
-            console.log("Отправка данных:", url.toString());
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`Ошибка HTTP: ${response.status}`);
-            }
-            
-            const result = await response.json();
-            console.log("Результат:", result);
-            
-            if (!result.success) {
-                throw new Error(result.error || "Ошибка сервера");
-            }
-            
-            showError("Спасибо! Данные сохранены ✅", "success");
-            amountInput.value = ""; // Очищаем поле ввода
-            await loadData(); // Обновляем данные
-        } catch (error) {
-            console.error("Ошибка отправки:", error);
-            showError(error.message || "Ошибка соединения");
-        } finally {
-            // Разблокируем кнопку
-            isSubmitting = false;
-            button.disabled = false;
-            showLoader(false);
-        }
+  if (amount <= 0) {
+    console.log("Сумма меньше или равна 0");
+    showError("Сумма должна быть больше 0");
+    amountInput.focus();
+    return;
+  }
+
+  // Блокировка кнопки
+  isSubmitting = true;
+  submitButton.disabled = true;
+  showLoader(true);
+  hideError();
+
+  try {
+    console.log("Формирование URL запроса...");
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.append('option', option);
+    url.searchParams.append('amount', amount.toFixed(2));
+    url.searchParams.append('t', Date.now());
+
+    console.log("Отправка запроса на:", url.toString());
+    const response = await fetch(url);
+    
+    console.log("Получен ответ, статус:", response.status);
+    
+    if (!response.ok) {
+      throw new Error(`Ошибка сервера: ${response.status}`);
     }
 
+    const result = await response.json();
+    console.log("Результат:", result);
+    
+    if (!result || !result.success) {
+      throw new Error(result?.error || "Неизвестная ошибка сервера");
+    }
+
+    console.log("Успешная отправка, обновление данных...");
+    showError("Спасибо! Данные сохранены ✅", "success");
+    amountInput.value = "";
+    await loadData();
+    
+  } catch (error) {
+    console.error("Ошибка при отправке:", error);
+    showError(error.message || "Ошибка соединения. Попробуйте ещё раз.");
+    
+    // Дополнительная диагностика
+    if (error instanceof TypeError) {
+      console.error("Возможная проблема с CORS или URL");
+    }
+  } finally {
+    console.log("Завершение обработки, разблокировка кнопки");
+    isSubmitting = false;
+    submitButton.disabled = false;
+    showLoader(false);
+  }
+}
     function validateInput(amount) {
         if (isNaN(amount) || amount <= 0) {
             showError("Введите корректную сумму (например: 10.50)");
