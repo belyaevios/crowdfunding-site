@@ -261,31 +261,30 @@ async function handleSubmit() {
   showLoader(true);
   hideError();
 
-  try {
+   try {
     const url = new URL(SCRIPT_URL);
     url.searchParams.append('option', option);
     url.searchParams.append('amount', amount.toFixed(2));
-    url.searchParams.append('t', Date.now());
-
+    // Убрали mode=set, так как бэкенд теперь реагирует на option/amount
+    
+    console.log("Sending data to:", url.toString());
     const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Ошибка сервера: ${response.status}`);
-    }
-
+    
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
     const result = await response.json();
-
-    if (!result || !result.success) {
-      throw new Error(result?.error || "Неизвестная ошибка сервера");
+    console.log("Full response:", result); // Добавили логирование
+    
+    if (!result.success) {
+      throw new Error(result.error || "Server error");
     }
 
-    showError("Спасибо! Данные сохранены ✅", "success");
-    amountInput.value = "";
-    await loadData();
-
+    showError("Данные сохранены! Обновляю...", "success");
+    await loadData(); // Явное обновление данных
+    
   } catch (error) {
-    console.error("Ошибка при отправке:", error);
-    showError(error.message || "Ошибка соединения. Попробуйте ещё раз.");
+    console.error("Full error details:", error);
+    showError(error.message || "Ошибка. Проверьте консоль (F12)");
   } finally {
     isSubmitting = false;
     submitButton.disabled = false;
