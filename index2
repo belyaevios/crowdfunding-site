@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Прогресс</title>
+  <style>
+    .bar-container {
+      width: 100%;
+      background: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 10px 0;
+      position: relative;
+      height: 30px;
+    }
+
+    .bar {
+      height: 100%;
+      text-align: center;
+      line-height: 30px;
+      color: white;
+      transition: width 0.5s;
+    }
+
+    .tequila { background: orange; }
+    .triathlon { background: green; }
+
+    .percent-label {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Tequila</h2>
+  <div class="bar-container">
+    <div id="tequilaBar" class="bar tequila" style="width: 0%;"></div>
+    <div id="tequilaLabel" class="percent-label"></div>
+  </div>
+
+  <h2>Triathlon</h2>
+  <div class="bar-container">
+    <div id="triathlonBar" class="bar triathlon" style="width: 0%;"></div>
+    <div id="triathlonLabel" class="percent-label"></div>
+  </div>
+
+  <select id="optionSelect">
+    <option value="Tequila">Tequila</option>
+    <option value="Triathlon">Triathlon</option>
+  </select>
+
+  <input type="number" id="amountInput" placeholder="Сколько перевел?" />
+  <button id="submitButton" onclick="handleSubmit()">Я перевел</button>
+
+  <script>
+    const SHEET_API = 'https://script.google.com/macros/s/PASTE_YOUR_DEPLOYED_URL_HERE/exec';
+
+    const GOALS = {
+      Tequila: 100,
+      Triathlon: 150
+    };
+
+    async function fetchData() {
+      try {
+        const res = await fetch(`${SHEET_API}?mode=get`);
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.error || "Ошибка получения данных");
+
+        updateProgress('Tequila', data.Tequila);
+        updateProgress('Triathlon', data.Triathlon);
+
+      } catch (err) {
+        alert("Ошибка загрузки: " + err.message);
+      }
+    }
+
+    function updateProgress(category, value) {
+      const percent = Math.min((value / GOALS[category]) * 100, 100);
+      const bar = document.getElementById(`${category.toLowerCase()}Bar`);
+      const label = document.getElementById(`${category.toLowerCase()}Label`);
+
+      bar.style.width = percent + '%';
+      label.textContent = percent >= 25 ? `${Math.round(percent)}%` : '';
+    }
+
+    async function handleSubmit() {
+      const btn = document.getElementById('submitButton');
+      btn.classList.add('loading');
+      const option = document.getElementById('optionSelect').value;
+      const amount = parseFloat(document.getElementById('amountInput').value);
+
+      if (!option || isNaN(amount) || amount <= 0) {
+        alert("Введите корректное значение");
+        btn.classList.remove('loading');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${SHEET_API}?mode=set&option=${encodeURIComponent(option)}&amount=${amount}`);
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.error || "Ошибка записи");
+
+        document.getElementById('amountInput').value = '';
+        await fetchData(); // обновить UI после успешной записи
+
+      } catch (err) {
+        alert("Ошибка: " + err.message);
+      } finally {
+        btn.classList.remove('loading');
+      }
+    }
+
+    fetchData(); // первичная загрузка
+  </script>
+
+</body>
+</html>
