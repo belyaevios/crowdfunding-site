@@ -1,82 +1,77 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Crowdfunding Battle</title>
+  <title>Crowdfunding Vote</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #ffe6f0, #f5e1ff);
-      margin: 0;
-      padding: 20px;
+      background: linear-gradient(to right, #ffe5f0, #ffd6e8);
       color: #333;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
     }
 
     h1 {
       text-align: center;
-      color: #cc2b8e;
+      color: #cc0066;
     }
 
-    .goal-container {
-      max-width: 600px;
-      margin: 20px auto;
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    .progress-container {
+      margin-bottom: 30px;
     }
 
-    .progress-label {
+    .label {
       font-weight: bold;
-      margin-bottom: 8px;
-    }
-
-    .progress-bar-wrapper {
-      background: #eee;
-      border-radius: 8px;
-      overflow: hidden;
-      height: 24px;
-      margin-bottom: 12px;
+      margin-bottom: 5px;
     }
 
     .progress-bar {
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      height: 24px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .progress {
       height: 100%;
       text-align: right;
       padding-right: 8px;
-      line-height: 24px;
       color: white;
       font-weight: bold;
+      line-height: 24px;
     }
 
     #tequilaBar {
-      background: linear-gradient(to right, #f953c6, #b91d73);
+      background-color: #ff66b2;
     }
 
     #triathlonBar {
-      background: linear-gradient(to right, #a18cd1, #fbc2eb);
+      background-color: #ff3399;
     }
 
-    .options {
-      display: flex;
-      justify-content: center;
+    .option {
       margin: 20px 0;
-      gap: 12px;
     }
 
     .option-label {
-      padding: 10px 20px;
-      border-radius: 30px;
+      display: block;
+      background: #fff;
+      border: 2px solid #ff66b2;
+      padding: 10px;
+      border-radius: 10px;
       cursor: pointer;
-      border: 2px solid #cc2b8e;
-      color: #cc2b8e;
-      transition: all 0.2s ease;
-      user-select: none;
+      margin-bottom: 10px;
+      transition: 0.3s;
     }
 
-    .option-label:hover, .option-label.active {
-      background: #cc2b8e;
-      color: white;
+    .option-label.active,
+    .option-label:hover {
+      background-color: #ffe5f0;
+      border-color: #cc0066;
     }
 
     input[type="radio"] {
@@ -86,93 +81,148 @@
     input[type="number"] {
       width: 100%;
       padding: 10px;
-      margin: 10px 0 20px;
+      margin-top: 10px;
       font-size: 16px;
-      border: 2px solid #cc2b8e;
+      border: 2px solid #ff66b2;
       border-radius: 10px;
     }
 
     button {
-      width: 100%;
-      background: #cc2b8e;
-      border: none;
+      background-color: #cc0066;
       color: white;
-      padding: 14px;
-      font-size: 18px;
-      border-radius: 30px;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      font-size: 16px;
+      margin-top: 20px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: background 0.3s;
     }
 
     button:hover {
-      background: #b1237a;
+      background-color: #99004d;
     }
 
-    .details {
+    .bank-details {
+      background-color: #fff0f5;
+      padding: 15px;
+      border-radius: 10px;
       margin-top: 30px;
       font-size: 14px;
-      color: #444;
-      text-align: center;
+      line-height: 1.6;
     }
 
-    .details p {
-      margin: 6px 0;
-    }
-
-    .amount-display {
-      text-align: right;
-      margin-top: -10px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: #777;
+    .bank-details strong {
+      color: #cc0066;
     }
   </style>
 </head>
 <body>
-  <h1>Tequila vs Triathlon</h1>
+  <h1>Краудфандинг Голосование</h1>
 
-  <div class="goal-container">
-    <div class="progress-label">Tequila</div>
-    <div class="progress-bar-wrapper">
-      <div class="progress-bar" id="tequilaBar" style="width: 0%"></div>
-    </div>
-    <div class="amount-display" id="tequilaAmount">0€ / 150€</div>
-
-    <div class="progress-label">Triathlon</div>
-    <div class="progress-bar-wrapper">
-      <div class="progress-bar" id="triathlonBar" style="width: 0%"></div>
-    </div>
-    <div class="amount-display" id="triathlonAmount">0€ / 800€</div>
-
-    <div class="options">
-      <label class="option-label" id="labelTequila">
-        <input type="radio" name="option" value="tequila"> Tequila
-      </label>
-      <label class="option-label" id="labelTriathlon">
-        <input type="radio" name="option" value="triathlon"> Triathlon
-      </label>
-    </div>
-
-    <input type="number" id="amountInput" placeholder="Введите сумму (€)" min="1" />
-
-    <button id="donateBtn">Я перевел</button>
-
-    <div class="details">
-      <p>📲 <strong>Revolut:</strong> @triathlete</p>
-      <p>🏦 <strong>Альфа-Банк:</strong> +79104361677</p>
-      <p><em>Сделай перевод и отметь сумму вручную 👆</em></p>
+  <div class="progress-container">
+    <div class="label">Tequila <span id="tequilaAmount"></span></div>
+    <div class="progress-bar">
+      <div class="progress" id="tequilaBar" style="width: 0%">0%</div>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <div class="progress-container">
+    <div class="label">Triathlon <span id="triathlonAmount"></span></div>
+    <div class="progress-bar">
+      <div class="progress" id="triathlonBar" style="width: 0%">0%</div>
+    </div>
+  </div>
+
+  <div class="option">
+    <label class="option-label">
+      <input type="radio" name="option" value="tequila" />
+      Поддержать Tequila
+    </label>
+
+    <label class="option-label">
+      <input type="radio" name="option" value="triathlon" />
+      Поддержать Triathlon
+    </label>
+
+    <input type="number" id="amountInput" placeholder="Введите сумму в €"/>
+    <button id="donateBtn">Я перевёл 🙌</button>
+  </div>
+
+  <div class="bank-details">
+    <p><strong>📲 Перевод через Revolut: @triathlete</strong><br>
+
+    <p><strong>🏦 Альфа-Банк:</strong><br>
+    Номер карты: <code>+79104361677</code><br>
+    Получатель: <code>Георгий К</code></p>
+
+    <p><em>Сделай перевод и отметь сумму вручную выше 👆</em></p>
+  </div>
+
   <script>
-    // выделение выбранного варианта
-    const labels = document.querySelectorAll('.option-label');
-    labels.forEach(label => {
-      label.addEventListener('click', () => {
-        labels.forEach(l => l.classList.remove('active'));
-        label.classList.add('active');
-        label.querySelector('input').checked = true;
+    const sheetUrl = 'https://script.google.com/macros/s/AKfycbxAHDEJYZg5m5Zk70rA6ITZO2y4hqUw1Vp2b9ipzoisrnmketOR0-Ua-IOp-yNmN7GN/exec';
+
+    async function fetchData() {
+      try {
+        const res = await fetch(sheetUrl);
+        const data = await res.json();
+
+        const tequilaGoal = 150;
+        const triathlonGoal = 800;
+
+        const tequilaAmount = data.tequila || 0;
+        const triathlonAmount = data.triathlon || 0;
+
+        const tequilaPercent = Math.min(100, (tequilaAmount / tequilaGoal) * 100);
+        const triathlonPercent = Math.min(100, (triathlonAmount / triathlonGoal) * 100);
+
+        document.getElementById('tequilaBar').style.width = tequilaPercent + '%';
+        document.getElementById('tequilaBar').innerText = `${Math.round(tequilaPercent)}%`;
+
+        document.getElementById('triathlonBar').style.width = triathlonPercent + '%';
+        document.getElementById('triathlonBar').innerText = `${Math.round(triathlonPercent)}%`;
+
+        document.getElementById('tequilaAmount').innerText = `${tequilaAmount}€ / ${tequilaGoal}€`;
+        document.getElementById('triathlonAmount').innerText = `${triathlonAmount}€ / ${triathlonGoal}€`;
+      } catch (e) {
+        console.error('Ошибка получения данных:', e);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchData();
+
+      document.querySelectorAll('input[name="option"]').forEach(input => {
+        input.addEventListener('change', () => {
+          document.querySelectorAll('.option-label').forEach(label => label.classList.remove('active'));
+          input.parentElement.classList.add('active');
+        });
+      });
+
+      document.getElementById('donateBtn').addEventListener('click', async () => {
+        const selected = document.querySelector('input[name="option"]:checked');
+        const amount = document.getElementById('amountInput').value;
+
+        if (!selected || !amount || isNaN(amount)) {
+          alert('Пожалуйста, выбери вариант и введи сумму');
+          return;
+        }
+
+        await fetch(sheetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            option: selected.value,
+            amount: Number(amount)
+          })
+        });
+
+        document.getElementById('amountInput').value = '';
+        selected.checked = false;
+        document.querySelectorAll('.option-label').forEach(label => label.classList.remove('active'));
+
+        fetchData();
       });
     });
   </script>
