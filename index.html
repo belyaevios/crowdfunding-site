@@ -239,12 +239,25 @@
       updateProgress('triathlon', data.Triathlon);
     }
 
-    function updateProgress(type, value) {
-      const percent = Math.min((value / GOALS[type]) * 100, 100);
-      const element = document.getElementById(`${type}-progress`);
-      element.style.width = `${percent}%`;
-      element.textContent = `${Math.round(percent)}% (€${value.toFixed(2)})`;
-    }
+  function updateProgress(type, value) {
+  try {
+    const numericValue = Math.max(0, Number(value)) || 0;
+    const goal = Math.max(1, Number(GOALS[type])) || 150; // Защита от деления на 0
+    
+    const percent = Math.min(Math.max(0, (numericValue / goal) * 100), 100);
+    const element = document.getElementById(`${type}-progress`);
+    
+    element.style.width = `${percent}%`;
+    element.textContent = `${Math.round(percent)}% (€${numericValue.toFixed(2)})`;
+  } catch (e) {
+    console.error('Progress calculation error:', e);
+    document.getElementById(`${type}-progress`).textContent = '0% (€0)';
+  }
+}
+  
+  element.style.width = `${percent}%`;
+  element.textContent = `${Math.round(percent)}% (€${numericValue.toFixed(2)})`;
+}
 
     function showLoader(show) {
       document.getElementById('loader').style.display = show ? 'block' : 'none';
