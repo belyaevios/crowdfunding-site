@@ -62,7 +62,7 @@
   <button id="submitButton" onclick="handleSubmit()">Я перевел</button>
 
   <script>
-    const SHEET_API = 'https://script.google.com/macros/s/PASTE_YOUR_DEPLOYED_URL_HERE/exec';
+    const SHEET_API = 'https://script.google.com/macros/s/AKfycby5o7UR_TzWiV_RqxLJ2tHSwp7aXeGTsYgbh-_CiePp_gLSg65z57OhbTZjdA2tlXMTbA/exec';
 
     const GOALS = {
       Tequila: 100,
