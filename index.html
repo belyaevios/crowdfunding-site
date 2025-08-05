@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Текилла VS Триатлон</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Текила VS Триатлон</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -11,173 +11,163 @@
       color: #333;
       padding: 20px;
       max-width: 600px;
-      margin: auto;
+      margin: 0 auto;
     }
-
     h1 {
       text-align: center;
       color: #d63384;
     }
-
     .progress-container {
-      margin: 20px 0;
+      margin: 25px 0;
     }
-
-    .label {
-      margin-bottom: 5px;
-      font-weight: bold;
-      color: #d63384;
-    }
-
     .progress-bar {
-      background-color: #ffc0cb;
+      background: #ffe0eb;
       border-radius: 10px;
-      height: 20px;
+      height: 30px;
+      margin-bottom: 15px;
       overflow: hidden;
-      margin-bottom: 10px;
     }
-
     .progress {
-      background-color: #d63384;
+      background: #d63384;
       height: 100%;
       width: 0%;
-      text-align: right;
+      transition: width 0.5s;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 10px;
       color: white;
-      padding-right: 5px;
-      border-radius: 10px 0 0 10px;
-      box-sizing: border-box;
-      transition: width 0.5s ease;
+      font-weight: bold;
     }
-
-    .input-section {
+    .input-group {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      margin-top: 20px;
+      margin: 25px 0;
     }
-
-    select, input {
-      padding: 10px;
-      border: 2px solid #d63384;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-
-    button {
-      background-color: #d63384;
-      color: white;
-      border: none;
+    select, input, button {
       padding: 12px;
+      border: 2px solid #d63384;
       border-radius: 8px;
       font-size: 16px;
+    }
+    button {
+      background: #d63384;
+      color: white;
+      border: none;
       cursor: pointer;
+      transition: background 0.3s;
     }
-
     button:hover {
-      background-color: #c22574;
+      background: #c22574;
     }
-
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
     .details {
-      margin-top: 30px;
+      background: white;
       padding: 15px;
-      background-color: #fff;
-      border-left: 5px solid #d63384;
-      border-radius: 5px;
+      border-radius: 8px;
+      border-left: 4px solid #d63384;
     }
   </style>
 </head>
 <body>
-
   <h1>Текила VS Триатлон</h1>
-
+  
   <div class="progress-container">
-    <div class="label">Tequila — Цель: €150</div>
+    <h3>Tequila — Цель: €150</h3>
     <div class="progress-bar">
-      <div id="tequila-progress" class="progress">0%</div>
+      <div id="tequila-progress" class="progress">0% (€0)</div>
     </div>
-
-    <div class="label">Triathlon — Цель: €800</div>
+    
+    <h3>Triathlon — Цель: €800</h3>
     <div class="progress-bar">
-      <div id="triathlon-progress" class="progress">0%</div>
+      <div id="triathlon-progress" class="progress">0% (€0)</div>
     </div>
   </div>
 
-  <div class="input-section">
+  <div class="input-group">
     <select id="option">
       <option value="Tequila">Tequila</option>
       <option value="Triathlon">Triathlon</option>
     </select>
-    <input type="number" id="amount" placeholder="Сумма перевода (€)">
-    <button onclick="submitDonation()">Я перевёл</button>
+    <input type="number" id="amount" placeholder="Сумма в €" min="0.01" step="0.01">
+    <button id="submit-btn" onclick="submitDonation()">Я перевёл</button>
   </div>
 
   <div class="details">
     <p>📲 <strong>Revolut:</strong> @triathlete</p>
     <p>🏦 <strong>Альфа-Банк:</strong> +79104361677</p>
-    <p>После перевода — отметь сумму вручную 👆</p>
+    <p>После перевода укажите сумму выше 👆</p>
   </div>
 
   <script>
-    const endpoint = "https://script.google.com/macros/s/AKfycbyO1FOqVtEf_nig5fXmowMwdJmFsizJ7Gvl4hfwUmXMd34Jpd-Bb5A9crTkaMlJ5GkeZQ/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgzPE6gJ8y4cflod-rIsXuDL7MO7VUjhNRNu1UquziSktX_PLbFeLP5XQqLLGaldvY4w/exec";
+    const GOALS = { Tequila: 150, Triathlon: 800 };
 
-    const goals = {
-      Tequila: 150,
-      Triathlon: 800
-    };
+    // Загрузка данных при старте
+    document.addEventListener('DOMContentLoaded', fetchProgress);
 
     async function fetchProgress() {
       try {
-        const res = await fetch(endpoint);
-        const data = await res.json();
-        updateProgressBars(data);
-      } catch (e) {
-        console.error("Ошибка загрузки данных:", e);
+        const response = await fetch(SCRIPT_URL);
+        if (!response.ok) throw new Error('Ошибка сети');
+        const data = await response.json();
+        updateUI(data);
+      } catch (error) {
+        console.error("Ошибка:", error);
+        document.getElementById('tequila-progress').textContent = "Ошибка загрузки";
+        document.getElementById('triathlon-progress').textContent = "Ошибка загрузки";
       }
     }
 
-    function updateProgressBars(data) {
-      const tequila = Math.min((data.Tequila || 0) / goals.Tequila * 100, 100);
-      const triathlon = Math.min((data.Triathlon || 0) / goals.Triathlon * 100, 100);
-
-      const tequilaElem = document.getElementById("tequila-progress");
-      tequilaElem.style.width = tequila + "%";
-      tequilaElem.textContent = `${Math.round(tequila)}%`;
-
-      const triathlonElem = document.getElementById("triathlon-progress");
-      triathlonElem.style.width = triathlon + "%";
-      triathlonElem.textContent = `${Math.round(triathlon)}%`;
+    function updateUI(data) {
+      updateProgress('tequila', data.Tequila || 0);
+      updateProgress('triathlon', data.Triathlon || 0);
     }
 
-   async function submitDonation() {
-      const option = document.getElementById("option").value;
-      const amount = parseFloat(document.getElementById("amount").value);
+    function updateProgress(type, value) {
+      const percent = Math.min((value / GOALS[type]) * 100, 100);
+      const elem = document.getElementById(`${type}-progress`);
+      elem.style.width = `${percent}%`;
+      elem.textContent = `${Math.round(percent)}% (€${value.toFixed(2)})`;
+    }
+
+    async function submitDonation() {
+      const option = document.getElementById('option').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const button = document.getElementById('submit-btn');
 
       if (!amount || amount <= 0) {
-        alert("Введите корректную сумму!");
+        alert("Пожалуйста, введите корректную сумму");
         return;
       }
 
-      try {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          mode: "cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ option, amount })
-        });
+      button.disabled = true;
+      button.textContent = "Отправка...";
 
-        const result = await res.json();
-        if (result.result === "success") {
-          alert("Спасибо! Данные отправлены ✅");
-          fetchProgress();
-        } else {
-          throw new Error(result.message);
-        }
-      } catch (e) {
-        alert("Ошибка отправки: " + e.message);
+      try {
+        const url = `${SCRIPT_URL}?option=${encodeURIComponent(option)}&amount=${amount}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) throw new Error('Ошибка сервера');
+        
+        alert("Спасибо! Ваш перевод учтён ✅");
+        document.getElementById('amount').value = '';
+        await fetchProgress();
+      } catch (error) {
+        console.error("Ошибка:", error);
+        alert("Ошибка отправки: " + error.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = "Я перевёл";
       }
     }
 
-    fetchProgress();
+    // Автообновление каждые 30 секунд
+    setInterval(fetchProgress, 30000);
   </script>
 </body>
 </html>
