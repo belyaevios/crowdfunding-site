@@ -40,15 +40,12 @@
       margin-bottom: 8px;
       font-weight: 600;
     }
-  
     .progress-bar {
-       height: 26px;
+      height: 26px;
       background: var(--progress-bg);
       border-radius: 13px;
       overflow: hidden;
     }
-
-
     .progress-fill {
       height: 100%;
       background: var(--primary);
@@ -171,227 +168,78 @@
       </div>
     </div>
   </div>
-
   <div class="card">
-    <select id="option">
+    <select name="option">
       <option value="Tequila">Tequila</option>
       <option value="Triathlon">Triathlon</option>
     </select>
     
-    <input type="number" id="amount" min="0.01" step="0.01" placeholder="Сумма в €">
+    <input name="amount" type="number" placeholder="Сумма (€)" min="0" step="1" />
     
-    <button id="submit-btn">Я перевёл!</button>
+    <button onclick="submitData()">Добавить</button>
   </div>
 
-  <div class="card">
-    <h3>Реквизиты для перевода:</h3>
-    <p>📲 <strong>Revolut:</strong> @triathlete</p>
-    <p>🏦 <strong>Альфа-Банк:</strong> +79104361677</p>
-  </div>
+  <script>
+    const BACKEND_URL = 'https://script.google.com/macros/s/AKfycby5o7UR_TzWiV_RqxLJ2tHSwp7aXeGTsYgbh-_CiePp_gLSg65z57OhbTZjdA2tlXMTbA/exec'; // 🔁 ЗАМЕНИ НА СВОЙ
 
-  <div class="last-update" id="last-update"></div>
+    async function loadProgress() {
+      document.getElementById('loader').style.display = 'block';
+      try {
+        const res = await fetch(BACKEND_URL);
+        const data = await res.json();
 
-   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby5o7UR_TzWiV_RqxLJ2tHSwp7aXeGTsYgbh-_CiePp_gLSg65z57OhbTZjdA2tlXMTbA/exec";
-    const GOALS = { 
-        Tequila: 150, 
-        Triathlon: 800 
-    };
-    let isSubmitting = false;
+        if (data.success) {
+          const tequilaPercent = Math.min(100, Math.round((data.Tequila / 150) * 100));
+          const triathlonPercent = Math.min(100, Math.round((data.Triathlon / 800) * 100));
 
-    // Инициализация
-    document.addEventListener('DOMContentLoaded', initApp);
+          document.getElementById('tequila-progress').style.width = ${tequilaPercent}%;
+          document.getElementById('tequila-progress').innerText = ${tequilaPercent}% (€${data.Tequila});
 
-    function initApp() {
-        console.log("Приложение инициализировано");
-        initButton();
-        loadData();
-        setInterval(loadData, 30000); // Обновление каждые 30 секунд
-    }
-
-    function initButton() {
-        const btn = document.getElementById('submit-btn');
-        if (!btn) {
-            console.error("Кнопка не найдена!");
-            return;
+          document.getElementById('triathlon-progress').style.width = ${triathlonPercent}%;
+          document.getElementById('triathlon-progress').innerText = ${triathlonPercent}% (€${data.Triathlon});
+        } else {
+          throw new Error(data.error || 'Ошибка получения данных');
         }
-        btn.addEventListener('click', handleSubmit);
-        console.log("Кнопка инициализирована");
+      } catch (e) {
+        document.getElementById('error').innerText = e.message;
+        document.getElementById('error').style.display = 'block';
+      } finally {
+        document.getElementById('loader').style.display = 'none';
+      }
     }
 
-async function handleSubmit() {
-  console.log("Начало обработки нажатия кнопки"); // Логирование
+    async function submitData() {
+      const option = document.querySelector('select[name="option"]').value;
+      const amount = document.querySelector('input[name="amount"]').value;
+      const button = document.querySelector('button');
 
-  if (isSubmitting) {
-    console.log("Предотвращено двойное нажатие");
-    return;
-  }
+      if (!amount  isNaN(amount)  amount <= 0) {
+        document.getElementById('error').innerText = 'Введите корректную сумму';
+        document.getElementById('error').style.display = 'block';
+        return;
+      }
 
-  const optionSelect = document.getElementById('option');
-  const amountInput = document.getElementById('amount');
-  const submitButton = document.getElementById('submit-btn');
+      button.disabled = true;
 
-  if (!optionSelect || !amountInput || !submitButton) {
-    console.error("Не найдены необходимые элементы DOM");
-    showError("Ошибка системы. Пожалуйста, обновите страницу.");
-    return;
-  }
+      try {
+        const res = await fetch(`${BACKEND_URL}?option=${option}&amount=${amount}`);
+        const data = await res.json();
 
-  const option = optionSelect.value;
-  const amount = parseFloat(amountInput.value);
-
-  console.log(`Попытка отправить: ${option} - ${amount}€`);
-
-  if (isNaN(amount)) {
-    console.log("Некорректная сумма", amountInput.value);
-    showError("Введите корректную сумму (например: 10.50)");
-    amountInput.focus();
-    return;
-  }
-
-  if (amount <= 0) {
-    console.log("Сумма меньше или равна 0");
-    showError("Сумма должна быть больше 0");
-    amountInput.focus();
-    return;
-  }
-
-  isSubmitting = true;
-  submitButton.disabled = true;
-  showLoader(true);
-  hideError();
-
-   try {
-    const url = new URL(SCRIPT_URL);
-    url.searchParams.append('option', option);
-    url.searchParams.append('amount', amount.toFixed(2));
-    // Убрали mode=set, так как бэкенд теперь реагирует на option/amount
-    
-    console.log("Sending data to:", url.toString());
-    const response = await fetch(url);
-    
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    
-    const result = await response.json();
-    console.log("Full response:", result); // Добавили логирование
-    
-    if (!result.success) {
-      throw new Error(result.error || "Server error");
-    }
-
-    showError("Данные сохранены! Обновляю...", "success");
-    await loadData(); // Явное обновление данных
-    
-  } catch (error) {
-    console.error("Full error details:", error);
-    showError(error.message || "Ошибка. Проверьте консоль (F12)");
-  } finally {
-    isSubmitting = false;
-    submitButton.disabled = false;
-    showLoader(false);
-  }
-}
-    function validateInput(amount) {
-        if (isNaN(amount) || amount <= 0) {
-            showError("Введите корректную сумму (например: 10.50)");
-            document.getElementById('amount').focus();
-            return false;
+        if (data.success) {
+          document.querySelector('input[name="amount"]').value = '';
+          await loadProgress(); // обновить прогресс
+        } else {
+          throw new Error(data.error || 'Ошибка при отправке');
         }
-        return true;
+      } catch (e) {
+        document.getElementById('error').innerText = e.message;
+        document.getElementById('error').style.display = 'block';
+      } finally {
+        button.disabled = false;
+      }
     }
 
-    async function loadData() {
-        try {
-            showLoader(true);
-            hideError();
-            
-            const url = new URL(SCRIPT_URL);
-            url.searchParams.append('mode', 'get');
-            url.searchParams.append('t', Date.now());
-            
-            console.log("Загрузка данных:", url.toString());
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`Ошибка HTTP: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            console.log("Получены данные:", data);
-            
-            if (!data || typeof data !== 'object') {
-                throw new Error("Неверный формат данных");
-            }
-            
-            validateData(data);
-            updateUI(data);
-            updateLastUpdate();
-        } catch (error) {
-            console.error("Ошибка загрузки:", error);
-            showError(error.message);
-        } finally {
-            showLoader(false);
-        }
-    }
-
-    function validateData(data) {
-        if (typeof data.Tequila !== 'number' || typeof data.Triathlon !== 'number') {
-            throw new Error("Некорректные данные в ответе");
-        }
-    }
-
-    function updateUI(data) {
-        updateProgressBar('tequila', data.Tequila, GOALS.Tequila);
-        updateProgressBar('triathlon', data.Triathlon, GOALS.Triathlon);
-    }
-
-    function updateProgressBar(type, value, goal) {
-        const numericValue = parseFloat(value) || 0;
-        const numericGoal = parseFloat(goal) || 1; // Защита от деления на 0
-        
-        const percent = Math.min((numericValue / numericGoal) * 100, 100);
-        const displayPercent = percent.toFixed(1);
-        
-        const element = document.getElementById(`${type}-progress`);
-        if (element) {
-            element.style.width = `${percent}%`;
-            element.textContent = `${displayPercent}% (€${numericValue.toFixed(2)})`;
-        }
-    }
-
-    function updateLastUpdate() {
-        const element = document.getElementById('last-update');
-        if (element) {
-            element.textContent = `Обновлено: ${new Date().toLocaleTimeString()}`;
-        }
-    }
-
-    function showLoader(show) {
-        const element = document.getElementById('loader');
-        if (element) {
-            element.style.display = show ? 'block' : 'none';
-        }
-    }
-
-    function showError(message, type = 'error') {
-        const element = document.getElementById('error');
-        if (!element) return;
-        
-        element.textContent = message;
-        element.className = type;
-        element.style.display = 'block';
-        
-        if (type === 'success') {
-            setTimeout(() => element.style.display = 'none', 3000);
-        }
-    }
-
-    function hideError() {
-        const element = document.getElementById('error');
-        if (element) {
-            element.style.display = 'none';
-        }
-    }
-</script>
+    document.addEventListener('DOMContentLoaded', loadProgress);
+  </script>
 </body>
 </html>
