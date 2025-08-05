@@ -118,7 +118,7 @@
   </div>
 
   <script>
-    const endpoint = "https://script.google.com/macros/s/AKfycbwxA-FWiYK5apaHsfqNELFlhdxzgYahvevvgbGqkc7wS3LxFn5oDotO-daH-XlxMrtaww/exec";
+    const endpoint = "https://script.google.com/macros/s/AKfycbyO1FOqVtEf_nig5fXmowMwdJmFsizJ7Gvl4hfwUmXMd34Jpd-Bb5A9crTkaMlJ5GkeZQ/exec";
 
     const goals = {
       Tequila: 150,
@@ -148,31 +148,34 @@
       triathlonElem.textContent = `${Math.round(triathlon)}%`;
     }
 
-    async function submitDonation() {
-  const option = document.getElementById("option").value;
-  const amount = parseFloat(document.getElementById("amount").value);
+   async function submitDonation() {
+      const option = document.getElementById("option").value;
+      const amount = parseFloat(document.getElementById("amount").value);
 
-  if (!amount || amount <= 0) {
-    alert("Введите корректную сумму!");
-    return;
-  }
+      if (!amount || amount <= 0) {
+        alert("Введите корректную сумму!");
+        return;
+      }
 
-  try {
-    const res = await fetch(endpoint + `?option=${encodeURIComponent(option)}&amount=${amount}`, {
-      method: "POST",
-      mode: "no-cors" // Попробуйте этот режим
-    });
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ option, amount })
+        });
 
-    if (res.ok) {
-      alert("Спасибо! Данные отправлены ✅");
-      fetchProgress();
-    } else {
-      throw new Error("Ошибка сервера");
+        const result = await res.json();
+        if (result.result === "success") {
+          alert("Спасибо! Данные отправлены ✅");
+          fetchProgress();
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (e) {
+        alert("Ошибка отправки: " + e.message);
+      }
     }
-  } catch (e) {
-    alert("Ошибка отправки: " + e.message);
-  }
-}
 
     fetchProgress();
   </script>
