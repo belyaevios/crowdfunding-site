@@ -160,6 +160,7 @@
       try {
         const res = await fetch(endpoint, {
           method: "POST",
+          mode: "cors",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ option, amount })
         });
