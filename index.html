@@ -40,29 +40,14 @@
       margin-bottom: 8px;
       font-weight: 600;
     }
-    .progress {
-  background-color: #e0e0e0;
-  border-radius: 10px;
-  width: 100%;
-  height: 24px;
-  overflow: hidden;
-}
+  
     .progress-bar {
-      background-color: #4caf50;
-      height: 100%;
-      width: 0%;
-      position: relative;
-      transition: width 0.4s ease;
+       height: 26px;
+      background: var(--progress-bg);
+      border-radius: 13px;
+      overflow: hidden;
     }
-.progress-text {
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: white;
-  font-weight: bold;
-  display: none; /* скрыт по умолчанию */
-}
+
 
     .progress-fill {
       height: 100%;
@@ -350,20 +335,7 @@
       }
     }
 
-    function setProgress(percent) {
-  const bar = document.getElementById("progress-bar");
-  const text = document.getElementById("progress-text");
-
-  bar.style.width = `${percent}%`;
-
-  if (percent >= 25) {
-    text.textContent = `${Math.round(percent)}%`;
-    text.style.display = "block";
-  } else {
-    text.textContent = "";
-    text.style.display = "none";
-  }
-}
+  
     function showLoader(show) {
       const element = document.getElementById('loader');
       if (element) {
