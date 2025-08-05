@@ -189,7 +189,7 @@
   <div class="last-update" id="last-update"></div>
 
   <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPJm-f2zDbpbL7hC69HC2rm70fj_sCne5jBtHlIQHQ20lbfbHeV1Jbrxy_3m_J1IvLSA/exec";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_cB78UPgNHJL73Fhu6JzskIUkYkh4uMgraxbySoW22UUJt6koZxizBv_uitcrEJYyUQ/exec";
   const GOALS = { 
     Tequila: 150, 
     Triathlon: 800 
@@ -241,53 +241,56 @@
   }
 
   async function handleSubmit() {
-    const option = document.getElementById('option').value;
-    const amount = parseFloat(document.getElementById('amount').value);
-    
-    if (!option || !amount) {
-      showError("Выберите категорию и введите сумму");
-      return;
-    }
-    
-    if (isNaN(amount) || amount <= 0) {
-      showError("Введите корректную сумму (например: 10.50)");
-      document.getElementById('amount').focus();
-      return;
-    }
+  const option = document.getElementById('option').value;
+  const amount = document.getElementById('amount').value.replace(',', '.');
 
-    try {
-      setSubmitState(true);
-      hideError();
-
-      const formData = new FormData();
-      formData.append('option', option);
-      formData.append('amount', amount.toFixed(2));
-
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) throw new Error("Ошибка при отправке данных");
-
-      const result = await response.json();
-      
-      if (!result.success) {
-        throw new Error(result.error || "Ошибка сервера");
-      }
-
-      showError("Спасибо! Перевод учтён ✅", "success");
-      loadData(); // Обновляем данные
-      
-      // Очищаем поле суммы
-      document.getElementById('amount').value = '';
-    } catch (error) {
-      console.error(error);
-      showError(error.message || "Ошибка при отправке данных. Попробуйте ещё раз.");
-    } finally {
-      setSubmitState(false);
-    }
+  if (!option || !amount || isNaN(amount)) {
+    showError("Проверьте введенные данные");
+    return;
   }
+
+  try {
+    setSubmitState(true);
+    
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        option: option,
+        amount: amount
+      })
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || "Ошибка сервера");
+    
+    showError("Данные сохранены!", "success");
+    loadData();
+    document.getElementById('amount').value = '';
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    setSubmitState(false);
+  }
+}
+
+async function loadData() {
+  try {
+    showLoader(true);
+    const response = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
+    const data = await response.json();
+    
+    if (!data.success) throw new Error(data.error);
+    
+    updateUI(data);
+  } catch (error) {
+    showError(error.message);
+  } finally {
+    showLoader(false);
+  }
+}
 
   function updateUI(data) {
     updateProgress('tequila', data.Tequila, GOALS.Tequila);
