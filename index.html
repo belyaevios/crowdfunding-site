@@ -293,15 +293,23 @@
     }
 
     function updateProgress(type, value) {
-      const numericValue = Number(value) || 0;
-      const goal = GOALS[type] || 150;
-      const percent = Math.min((numericValue / goal) * 100, 100);
-      
-      const element = document.getElementById(`${type}-progress`);
-      if (!element) {
-        console.error(`Элемент прогресса не найден: ${type}-progress`);
-        return;
-      }
+  // Преобразуем в число и защищаем от NaN
+  const numericValue = parseFloat(value) || 0;
+  const goal = parseFloat(GOALS[type]) || 150; // Защитное значение
+  
+  // Правильный расчет процента с точностью до 2 знаков
+  const percent = (numericValue / goal) * 100;
+  const roundedPercent = Math.min(percent, 100).toFixed(1); // Ограничиваем 100% и 1 знак после запятой
+  
+  const element = document.getElementById(`${type}-progress`);
+  if (!element) return;
+  
+  element.style.width = `${roundedPercent}%`;
+  element.textContent = `${roundedPercent}% (€${numericValue.toFixed(2)})`;
+  
+  // Для отладки (можно удалить после проверки)
+  console.log(`Progress: ${type} = ${numericValue} / ${goal} = ${roundedPercent}%`);
+}
       
       element.style.width = `${percent}%`;
       element.textContent = `${Math.round(percent)}% (€${numericValue.toFixed(2)})`;
