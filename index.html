@@ -2,176 +2,127 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Crowdfunding: Текила vs Триатлон</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crowdfunding Battle</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background-color: #fff0f5;
+      font-family: Arial, sans-serif;
+      background: #ffe6f0;
       color: #333;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
-    }
-
-    h1, h2 {
       text-align: center;
+      padding: 20px;
+    }
+    h1 {
       color: #d63384;
     }
-
-    .goal-section {
-      margin-bottom: 30px;
-    }
-
-    .progress-container {
-      background-color: #f8d7da;
-      border-radius: 8px;
+    .progress {
+      background: #f8d7da;
+      border-radius: 20px;
+      margin: 20px auto;
+      width: 80%;
+      height: 30px;
       overflow: hidden;
-      margin-top: 5px;
-      height: 20px;
     }
-
-    .progress-bar {
+    .bar {
       height: 100%;
-      background-color: #ff69b4;
       text-align: right;
-      padding-right: 5px;
+      padding-right: 10px;
+      line-height: 30px;
       color: white;
-      font-size: 12px;
-    }
-
-    .form-section {
-      margin: 30px 0;
-    }
-
-    label, input, select {
-      display: block;
-      width: 100%;
-      margin-bottom: 10px;
-      font-size: 16px;
-    }
-
-    button {
       background-color: #d63384;
-      color: white;
-      border: none;
+      border-radius: 20px;
+    }
+    input, select, button {
       padding: 10px;
-      width: 100%;
-      cursor: pointer;
+      margin: 5px;
       font-size: 16px;
-      border-radius: 4px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
     }
-
-    button:hover {
-      background-color: #c2185b;
+    .donation-form {
+      margin-top: 20px;
     }
-
-    .bank-details {
+    .bank-info {
       margin-top: 40px;
-      background-color: #fff;
+      background: #fff0f5;
       padding: 20px;
-      border-radius: 8px;
-      border: 1px solid #ffb6c1;
-    }
-
-    .bank-details h3 {
-      color: #d63384;
-    }
-
-    .footer {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 14px;
-      color: #777;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Краудфандинг: Текила vs Триатлон</h1>
+  <h1>Crowdfunding Battle 💸</h1>
+  <h3>Цель: Tequila — 100€ / Triathlon — 800€</h3>
 
-  <div class="goal-section">
-    <h2>Текила (цель: €100)</h2>
-    <div class="progress-container">
-      <div id="tequila-bar" class="progress-bar">0%</div>
+  <div>
+    <strong>Tequila</strong>
+    <div class="progress">
+      <div id="tequilaBar" class="bar" style="width: 0%">0%</div>
+    </div>
+  </div>
+  <div>
+    <strong>Triathlon</strong>
+    <div class="progress">
+      <div id="triathlonBar" class="bar" style="width: 0%">0%</div>
     </div>
   </div>
 
-  <div class="goal-section">
-    <h2>Триатлон (цель: €800)</h2>
-    <div class="progress-container">
-      <div id="triathlon-bar" class="progress-bar">0%</div>
-    </div>
-  </div>
-
-  <div class="form-section">
-    <label for="option">Выбери опцию:</label>
+  <div class="donation-form">
     <select id="option">
-      <option value="tequila">Текила</option>
-      <option value="triathlon">Триатлон</option>
+      <option value="Tequila">Tequila</option>
+      <option value="Triathlon">Triathlon</option>
     </select>
-
-    <label for="amount">Сумма (€):</label>
-    <input type="number" id="amount" min="1" />
-
-    <button onclick="submitDonation()">Добавить донат</button>
+    <input type="number" id="amount" placeholder="Сумма (€)" />
+    <button onclick="submitDonation()">Я перевёл 💖</button>
   </div>
 
-  <div class="bank-details">
-    <h3>📲 Перевод на Revolut:</h3>
-    <p><strong>Номер:</strong> +357 99 123456</p>
-    <p><strong>IBAN:</strong> LT123456789012345678</p>
-
-    <h3>🏦 Альфа-Банк:</h3>
-    <p><strong>Получатель:</strong> Беляев В.А.</p>
-    <p><strong>Счет:</strong> 40817810099910001234</p>
-    <p><strong>БИК:</strong> 044525593</p>
-
-    <p><em>Сделай перевод и отметь сумму вручную 💗</em></p>
-  </div>
-
-  <div class="footer">
-    &copy; 2025 Crowdfunding. Все по-честному :)
+  <div class="bank-info">
+    <h3>Как перевести деньги:</h3>
+    <p>📲 <strong>Revolut</strong>: +357 99 123456</p>
+    <p>🏦 <strong>Альфа-Банк</strong>: 40817810400000123456</p>
+    <p><em>Сделай перевод и отметь сумму вручную 👆</em></p>
   </div>
 
   <script>
-    const goals = {
-      tequila: 100,
-      triathlon: 800
-    };
+    const scriptURL = "https://script.google.com/macros/s/AKfycbxAHDEJYZg5m5Zk70rA6ITZO2y4hqUw1Vp2b9ipzoisrnmketOR0-Ua-IOp-yNmN7GN/exec";
 
-    const progress = JSON.parse(localStorage.getItem('progress')) || {
-      tequila: 0,
-      triathlon: 0
-    };
+    async function fetchProgress() {
+      const res = await fetch(scriptURL);
+      const data = await res.json();
 
-    function updateBars() {
-      const tequilaPercent = Math.min(100, (progress.tequila / goals.tequila) * 100).toFixed(1);
-      const triathlonPercent = Math.min(100, (progress.triathlon / goals.triathlon) * 100).toFixed(1);
+      const tequila = data.Tequila || 0;
+      const triathlon = data.Triathlon || 0;
 
-      document.getElementById('tequila-bar').style.width = tequilaPercent + '%';
-      document.getElementById('tequila-bar').innerText = `${tequilaPercent}%`;
+      const tequilaGoal = 100;
+      const triathlonGoal = 800;
 
-      document.getElementById('triathlon-bar').style.width = triathlonPercent + '%';
-      document.getElementById('triathlon-bar').innerText = `${triathlonPercent}%`;
+      const tequilaPct = Math.min((tequila / tequilaGoal) * 100, 100);
+      const triathlonPct = Math.min((triathlon / triathlonGoal) * 100, 100);
+
+      document.getElementById("tequilaBar").style.width = tequilaPct + "%";
+      document.getElementById("tequilaBar").innerText = Math.round(tequilaPct) + "%";
+
+      document.getElementById("triathlonBar").style.width = triathlonPct + "%";
+      document.getElementById("triathlonBar").innerText = Math.round(triathlonPct) + "%";
     }
 
-    function submitDonation() {
-      const option = document.getElementById('option').value;
-      const amount = parseFloat(document.getElementById('amount').value);
+    async function submitDonation() {
+      const option = document.getElementById("option").value;
+      const amount = parseFloat(document.getElementById("amount").value);
 
-      if (!amount || amount <= 0) {
-        alert('Введите сумму пожертвования');
-        return;
-      }
+      if (!amount || amount <= 0) return alert("Введите сумму");
 
-      progress[option] += amount;
-      localStorage.setItem('progress', JSON.stringify(progress));
-      updateBars();
+      await fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify({ option, amount }),
+        headers: { "Content-Type": "application/json" },
+      });
 
-      document.getElementById('amount').value = '';
+      document.getElementById("amount").value = "";
+      fetchProgress();
     }
 
-    updateBars();
+    fetchProgress();
   </script>
 </body>
 </html>
