@@ -325,17 +325,18 @@ function updateUI(data) {
   updateProgress('triathlon', data.Triathlon, GOALS.Triathlon);
 }
 
-function updateProgress(type, value, goal) {
-  const numericValue = parseFloat(value) || 0;
-  const numericGoal = parseFloat(goal) || 1;
-  
-  const percent = Math.min((numericValue / numericGoal) * 100, 100);
-  const displayPercent = percent.toFixed(1);
-  
-  const element = document.getElementById(`${type}-progress`);
-  if (element) {
-    element.style.width = `${percent}%`;
-    element.textContent = `${displayPercent}% (€${numericValue.toFixed(2)})`;
+function setProgress(percent, option) {
+  const bar = document.getElementById(`progress-${option}`);
+  const label = document.getElementById(`label-${option}`);
+
+  bar.style.width = `${percent}%`;
+
+  if (percent >= 25) {
+    label.textContent = `${Math.round(percent)}%`;
+    label.style.opacity = 1;
+  } else {
+    label.textContent = "";
+    label.style.opacity = 0;
   }
 }
 
