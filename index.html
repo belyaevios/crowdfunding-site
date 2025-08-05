@@ -193,187 +193,185 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz6KuYA7k4AXwxFFSCWryHDY9HmDannl2aI6PaDGgXwpYkStZ42ATd2spq_quFikhc8Lg/exec";
-    const GOALS = { 
-      Tequila: 150, 
-      Triathlon: 800 
-    };
-    let isSubmitting = false;
+const GOALS = { 
+  Tequila: 150, 
+  Triathlon: 800 
+};
+let isSubmitting = false;
 
-    // Инициализация
-    document.addEventListener('DOMContentLoaded', initApp);
+// Инициализация
+document.addEventListener('DOMContentLoaded', initApp);
 
-    function initApp() {
-      console.log("Приложение инициализировано");
-      initButton();
-      loadData();
-      setInterval(loadData, 100000);
-    }
+function initApp() {
+  console.log("Приложение инициализировано");
+  initButton();
+  loadData();
+  setInterval(loadData, 30000); // Обновление каждые 30 секунд
+}
 
-    function initButton() {
-      const btn = document.getElementById('submit-btn');
-      if (!btn) {
-        console.error("Кнопка не найдена!");
-        return;
-      }
-      btn.addEventListener('click', handleSubmit);
-      console.log("Кнопка инициализирована");
-    }
+function initButton() {
+  const btn = document.getElementById('submit-btn');
+  if (!btn) {
+    console.error("Кнопка не найдена!");
+    return;
+  }
+  btn.addEventListener('click', handleSubmit);
+  console.log("Кнопка инициализирована");
+}
 
-    async function loadData() {
-      try {
-        showLoader(true);
-        hideError();
-        
-        const url = new URL(SCRIPT_URL);
-        url.searchParams.append('mode', 'get');
-        url.searchParams.append('t', Date.now());
-        
-        console.log("Отправка запроса:", url.toString());
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log("Получены данные:", data);
-        
-        if (!data || typeof data !== 'object') {
-          throw new Error("Неверный формат данных");
-        }
-        
-        validateData(data);
-        updateUI(data);
-        updateLastUpdate();
-      } catch (error) {
-        console.error("Ошибка загрузки:", error);
-        showError(error.message);
-      } finally {
-        showLoader(false);
-      }
-    }
-
-    function validateData(data) {
-      if (typeof data.Tequila !== 'number' || typeof data.Triathlon !== 'number') {
-        throw new Error("Некорректные данные в ответе");
-      }
-    }
-
-   async function handleSubmit() {
-      if (isSubmitting) return;
-      
-      const option = document.getElementById('option').value;
-      const amountInput = document.getElementById('amount');
-      const amount = parseFloat(amountInput.value);
-      
-      if (!validateInput(amount)) return;
-
-      isSubmitting = true;
-      setSubmitState(true);
-
-      try {
-        const url = new URL(SCRIPT_URL);
-        url.searchParams.append('mode', 'set');
-        url.searchParams.append('option', option);
-        url.searchParams.append('amount', amount.toFixed(2));
-        url.searchParams.append('t', Date.now());
-
-        console.log("Отправка данных:", url.toString());
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error(`Ошибка HTTP: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log("Результат:", result);
-        
-        if (!result || !result.success) {
-          throw new Error(result?.error || "Ошибка сервера");
-        }
-        
-        showError("Спасибо! Данные сохранены ✅", "success");
-        amountInput.value = "";
-        await loadData();
-      } catch (error) {
-        console.error("Ошибка отправки:", error);
-        showError(error.message);
-      } finally {
-        isSubmitting = false;
-        setSubmitState(false);
-      }
-    }
-
-    function validateInput(amount) {
-      if (isNaN(amount) || amount <= 0) {
-        showError("Введите корректную сумму (например: 10.50)");
-        document.getElementById('amount').focus();
-        return false;
-      }
-      return true;
-    }
-
-    function setSubmitState(isSubmitting) {
-      const btn = document.getElementById('submit-btn');
-      if (btn) {
-        btn.disabled = isSubmitting;
-      }
-      showLoader(isSubmitting);
-    }
-
-    function updateUI(data) {
-      updateProgress('tequila', data.Tequila, GOALS.Tequila);
-      updateProgress('triathlon', data.Triathlon, GOALS.Triathlon);
-    }
-
-    function updateProgress(type, value, goal) {
-      const numericValue = parseFloat(value) || 0;
-      const numericGoal = parseFloat(goal) || 1; // Защита от деления на 0
-      
-      const percent = Math.min((numericValue / numericGoal) * 100, 100);
-      const displayPercent = percent.toFixed(1);
-      
-      const element = document.getElementById(`${type}-progress`);
-      if (element) {
-        element.style.width = `${percent}%`;
-        element.textContent = `${displayPercent}% (€${numericValue.toFixed(2)})`;
-      }
-    }
-
-    function updateLastUpdate() {
-      const element = document.getElementById('last-update');
-      if (element) {
-        element.textContent = `Обновлено: ${new Date().toLocaleTimeString()}`;
-      }
-    }
-
+async function handleSubmit() {
+  if (isSubmitting) return;
   
-    function showLoader(show) {
-      const element = document.getElementById('loader');
-      if (element) {
-        element.style.display = show ? 'block' : 'none';
-      }
-    }
+  const option = document.getElementById('option').value;
+  const amountInput = document.getElementById('amount');
+  const amount = parseFloat(amountInput.value);
+  const button = document.getElementById('submit-btn');
 
-    function showError(message, type = 'error') {
-      const element = document.getElementById('error');
-      if (!element) return;
-      
-      element.textContent = message;
-      element.className = type;
-      element.style.display = 'block';
-      
-      if (type === 'success') {
-        setTimeout(() => element.style.display = 'none', 3000);
-      }
-    }
+  // Валидация ввода
+  if (!validateInput(amount)) return;
 
-    function hideError() {
-      const element = document.getElementById('error');
-      if (element) {
-        element.style.display = 'none';
-      }
+  // Блокируем кнопку
+  isSubmitting = true;
+  button.disabled = true;
+  showLoader(true);
+  hideError();
+
+  try {
+    // Формируем URL с параметрами
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.append('option', option);
+    url.searchParams.append('amount', amount.toFixed(2));
+    url.searchParams.append('t', Date.now());
+
+    console.log("Отправка данных:", url.toString());
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Ошибка HTTP: ${response.status}`);
     }
+    
+    const result = await response.json();
+    console.log("Результат:", result);
+    
+    if (!result.success) {
+      throw new Error(result.error || "Ошибка сервера");
+    }
+    
+    showError("Спасибо! Данные сохранены ✅", "success");
+    amountInput.value = ""; // Очищаем поле ввода
+    await loadData(); // Обновляем данные
+  } catch (error) {
+    console.error("Ошибка отправки:", error);
+    showError(error.message || "Ошибка соединения");
+  } finally {
+    // Разблокируем кнопку
+    isSubmitting = false;
+    button.disabled = false;
+    showLoader(false);
+  }
+}
+
+function validateInput(amount) {
+  if (isNaN(amount) || amount <= 0) {
+    showError("Введите корректную сумму (например: 10.50)");
+    document.getElementById('amount').focus();
+    return false;
+  }
+  return true;
+}
+
+async function loadData() {
+  try {
+    showLoader(true);
+    hideError();
+    
+    const url = new URL(SCRIPT_URL);
+    url.searchParams.append('mode', 'get');
+    url.searchParams.append('t', Date.now());
+    
+    console.log("Загрузка данных:", url.toString());
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Ошибка HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log("Получены данные:", data);
+    
+    if (!data || typeof data !== 'object') {
+      throw new Error("Неверный формат данных");
+    }
+    
+    validateData(data);
+    updateUI(data);
+    updateLastUpdate();
+  } catch (error) {
+    console.error("Ошибка загрузки:", error);
+    showError(error.message);
+  } finally {
+    showLoader(false);
+  }
+}
+
+function validateData(data) {
+  if (typeof data.Tequila !== 'number' || typeof data.Triathlon !== 'number') {
+    throw new Error("Некорректные данные в ответе");
+  }
+}
+
+function updateUI(data) {
+  updateProgress('tequila', data.Tequila, GOALS.Tequila);
+  updateProgress('triathlon', data.Triathlon, GOALS.Triathlon);
+}
+
+function updateProgress(type, value, goal) {
+  const numericValue = parseFloat(value) || 0;
+  const numericGoal = parseFloat(goal) || 1;
+  
+  const percent = Math.min((numericValue / numericGoal) * 100, 100);
+  const displayPercent = percent.toFixed(1);
+  
+  const element = document.getElementById(`${type}-progress`);
+  if (element) {
+    element.style.width = `${percent}%`;
+    element.textContent = `${displayPercent}% (€${numericValue.toFixed(2)})`;
+  }
+}
+
+function updateLastUpdate() {
+  const element = document.getElementById('last-update');
+  if (element) {
+    element.textContent = `Обновлено: ${new Date().toLocaleTimeString()}`;
+  }
+}
+
+function showLoader(show) {
+  const element = document.getElementById('loader');
+  if (element) {
+    element.style.display = show ? 'block' : 'none';
+  }
+}
+
+function showError(message, type = 'error') {
+  const element = document.getElementById('error');
+  if (!element) return;
+  
+  element.textContent = message;
+  element.className = type;
+  element.style.display = 'block';
+  
+  if (type === 'success') {
+    setTimeout(() => element.style.display = 'none', 3000);
+  }
+}
+
+function hideError() {
+  const element = document.getElementById('error');
+  if (element) {
+    element.style.display = 'none';
+  }
+}
   </script>
 </body>
 </html>
