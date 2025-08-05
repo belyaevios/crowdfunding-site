@@ -84,7 +84,7 @@
   </div>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbzXgz482w4eKvGd6gWGbnRqaBLs3Ek2z2r0Tb4ACtpqTrh1WDV0StJIe6MMK2egAEHo/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwIJBAZGoWCS-G5dC2QvFFH1Pd8-yckUN5Z930p-YQN9WoowZ6j7Du5xWrElkD_bTfP/exec";
 
     async function fetchProgress() {
       const res = await fetch(scriptURL);
@@ -93,7 +93,7 @@
       const tequila = data.Tequila || 0;
       const triathlon = data.Triathlon || 0;
 
-      const tequilaGoal = 100;
+      const tequilaGoal = 150;
       const triathlonGoal = 800;
 
       const tequilaPct = Math.min((tequila / tequilaGoal) * 100, 100);
